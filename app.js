@@ -1,12 +1,12 @@
 import { db } from './firebase-config.js';
 import { 
-  collection, 
-  addDoc, 
-  getDocs, 
-  query, 
-  orderBy,
-  onSnapshot 
-} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+  ref,
+  set,
+  push,
+  onValue,
+  query,
+  orderByChild
+} from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 
 // State management
 const state = {
@@ -22,48 +22,32 @@ const state = {
   ]
 };
 
-// Initialize charts
 let progressChart;
 
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   initializeCharts();
   setupEventListeners();
   renderGoals();
-  await loadContributions();
   setupRealtimeListeners();
   
   // Show initial section
   showSection('overview');
 });
 
-async function loadContributions() {
-  const q = query(collection(db, "contributions"), orderBy("date", "desc"));
-  const querySnapshot = await getDocs(q);
-  state.contributions = querySnapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data(),
-    date: doc.data().date // Ensure date is properly handled
-  }));
-  
-  updateContributionsTable();
-  updateProgressChart();
-  updateSummary();
-}
-
 function setupRealtimeListeners() {
-  const q = query(collection(db, "contributions"), orderBy("date", "desc"));
-  onSnapshot(q, (snapshot) => {
-    snapshot.docChanges().forEach((change) => {
-      if (change.type === "added") {
-        const contribution = {
-          id: change.doc.id,
-          ...change.doc.data()
-        };
-        if (!state.contributions.find(c => c.id === contribution.id)) {
-          state.contributions.push(contribution);
-        }
-      }
-    });
+  const contributionsRef = ref(db, 'contributions');
+  onValue(contributionsRef, (snapshot) => {
+    const data = snapshot.val();
+    state.contributions = [];
+    
+    if (data) {
+      Object.keys(data).forEach(key => {
+        state.contributions.push({
+          id: key,
+          ...data[key]
+        });
+      });
+    }
     
     updateContributionsTable();
     updateProgressChart();
@@ -82,7 +66,8 @@ async function handleNewContribution(e) {
   };
   
   try {
-    await addDoc(collection(db, "contributions"), contribution);
+    const newContributionRef = push(ref(db, 'contributions'));
+    await set(newContributionRef, contribution);
     e.target.reset();
   } catch (error) {
     console.error("Error adding contribution: ", error);

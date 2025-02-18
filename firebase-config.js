@@ -1,10 +1,11 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-database.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD5gjkbcUrcnRVU_5pdFfjGsfKTNVi99fY",
   authDomain: "alunos-9848d.firebaseapp.com",
+  databaseURL: "https://alunos-9848d-default-rtdb.firebaseio.com",
   projectId: "alunos-9848d",
   storageBucket: "alunos-9848d.firebasestorage.app",
   messagingSenderId: "697570485120",
@@ -14,7 +15,7 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getDatabase(app);
 const analytics = getAnalytics(app);
 
 export { db };
