@@ -6,7 +6,6 @@
   --text-color: #333333;
   --border-radius: 12px;
   --spacing: 16px;
-  --danger-color: #dc3545;
 }
 
 * {
@@ -145,47 +144,32 @@ th {
 #goalsList {
   display: grid;
   gap: 1rem;
-}
-
-.goal-controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.edit-btn {
-  background: var(--secondary-color);
-  color: var(--text-color);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  border: none;
-}
-
-.edit-btn:hover {
-  background: #e0a800;
-}
-
-#goalForm {
-  display: grid;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .goal-item {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
-  padding: 1rem;
-  background: #f8f8f8;
+  padding: 1.5rem;
+  background: var(--card-background);
+  border: 1px solid #eee;
   border-radius: var(--border-radius);
-  margin-bottom: 1rem;
+}
+
+.goal-item h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
 }
 
 .goal-progress {
-  height: 8px;
+  height: 10px;
   background: #ddd;
   border-radius: 4px;
-  margin-top: 0.5rem;
+  margin-top: 1rem;
 }
 
 .goal-progress-bar {
@@ -195,190 +179,37 @@ th {
   transition: width 0.3s;
 }
 
-.login-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--background-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.login-container {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-}
-
-.user-info {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.logout-btn {
-  background: var(--danger-color);
-  padding: 0.25rem 0.5rem;
-  font-size: 0.9rem;
-}
-
-.logout-btn:hover {
-  background: #bd2130;
-}
-
-.delete-btn {
-  background: var(--danger-color);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  border: none;
-}
-
-.delete-btn:hover {
-  background: #bd2130;
-}
-
-.password-field {
+.goal-progress-bar.completed {
+  background: var(--secondary-color);
   position: relative;
-  display: flex;
-  align-items: center;
 }
 
-.password-field input {
-  flex: 1;
-  padding-right: 40px;
-}
-
-.toggle-password {
+.goal-progress-bar.completed::after {
+  content: '✨';
   position: absolute;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #666;
-  cursor: pointer;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-}
-
-.toggle-password:hover {
-  color: var(--primary-color);
-}
-
-.toggle-password svg {
-  width: 20px;
-  height: 20px;
-}
-
-.user-selection {
-  display: grid;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.user-btn {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background: var(--card-background);
-  border: 1px solid var(--primary-color);
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.user-btn:hover {
-  background: var(--primary-color);
-  color: white;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-}
-
-.user-btn:hover .user-avatar {
-  background: white;
-  color: var(--primary-color);
-}
-
-#user-select-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--background-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
+  right: -20px;
+  top: -12px;
 }
 
 @media (max-width: 768px) {
-  .login-container {
-    width: 90%;
-    max-width: 400px;
-    margin: 1rem auto;
-  }
-
-  .card {
-    padding: 1rem;
-  }
-
-  .progress-container {
-    height: 250px;
-  }
-
-  nav {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
   .summary-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
   }
-
-  .goal-item {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .goal-controls {
-    justify-content: flex-start;
-  }
-
-  .user-selection {
+  
+  button {
     width: 100%;
   }
   
-  .user-btn {
-    width: 100%;
+  .progress-container {
+    height: 200px;
   }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .login-container {
-    width: 70%;
+  
+  .goal-progress-bar.completed::after {
+    right: -15px;
+    top: -10px;
   }
-
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
+  
+  #goalsList {
+    grid-template-columns: 1fr;
   }
 }

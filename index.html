@@ -7,34 +7,13 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="user-select-screen" class="active">
-    <div class="login-container card">
-      <h2>Selecione o Usuário</h2>
-      <div class="user-selection">
-        <button class="user-btn" onclick="selectUser('camilowilliam0@gmail.com', '6363')">
-          <div class="user-avatar">CD</div>
-          <span>Camilo Duvane</span>
-        </button>
-        <button class="user-btn" onclick="selectUser('cintiajaime11@gmail.com', '4321')">
-          <div class="user-avatar">CM</div>
-          <span>Cíntia Mucumbi</span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <div id="app" style="display: none;">
+  <div id="app">
     <header>
-      <div class="user-info">
-        <span id="currentUser"></span>
-        <button onclick="logout()" class="logout-btn">Sair</button>
-      </div>
       <h1>Xitique Compartilhado</h1>
       <nav>
-        <button onclick="showSection('overview')" class="active">Visão Geral</button>
-        <button onclick="showSection('contributions')">Contribuições</button>
-        <button onclick="showSection('goals')">Metas</button>
-        <button onclick="showSection('users')" id="adminUsersBtn" style="display: none;">Usuários</button>
+        <button data-section="overview" class="active">Visão Geral</button>
+        <button data-section="contributions">Contribuições</button>
+        <button data-section="goals">Metas</button>
       </nav>
     </header>
 
@@ -43,6 +22,7 @@
         <div class="card progress-card">
           <h2>Progresso Total</h2>
           <div class="progress-container">
+            <div id="totalProgress"></div>
             <canvas id="progressChart"></canvas>
           </div>
         </div>
@@ -70,6 +50,11 @@
         <div class="card">
           <h2>Nova Contribuição</h2>
           <form id="contributionForm">
+            <select id="participant" required>
+              <option value="">Selecione o participante</option>
+              <option value="Camilo Duvane">Camilo Duvane</option>
+              <option value="Cíntia Mucumbi">Cíntia Mucumbi</option>
+            </select>
             <input type="number" id="amount" placeholder="Valor (MZN)" required>
             <input type="date" id="date" required>
             <button type="submit">Adicionar</button>
@@ -85,7 +70,6 @@
                   <th>Data</th>
                   <th>Participante</th>
                   <th>Valor</th>
-                  <th id="adminActions" style="display: none;">Ações</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -97,40 +81,8 @@
       <section id="goals">
         <div class="card">
           <h2>Objetivos de Compra</h2>
-          <form id="goalForm" style="margin-bottom: 1rem;">
-            <input type="text" id="goalName" placeholder="Nome do objetivo" required>
-            <input type="number" id="goalAmount" placeholder="Valor (MZN)" required>
-            <button type="submit">Adicionar Objetivo</button>
-          </form>
           <div id="goalsList">
             <!-- Goals will be inserted here -->
-          </div>
-        </div>
-      </section>
-
-      <section id="users">
-        <div class="card">
-          <h2>Gerenciar Usuários</h2>
-          <form id="userForm">
-            <input type="text" id="newUsername" placeholder="Nome de usuário" required>
-            <input type="password" id="newPassword" placeholder="Código de acesso" required>
-            <select id="userRole" required>
-              <option value="participant">Participante</option>
-              <option value="admin">Administrador</option>
-            </select>
-            <button type="submit">Adicionar Usuário</button>
-          </form>
-          <div class="table-container">
-            <table id="usersTable">
-              <thead>
-                <tr>
-                  <th>Usuário</th>
-                  <th>Função</th>
-                  <th>Ações</th>
-                </tr>
-              </thead>
-              <tbody></tbody>
-            </table>
           </div>
         </div>
       </section>
@@ -138,41 +90,11 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
-  
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyD5gjkbcUrcnRVU_5pdFfjGsfKTNVi99fY",
-      authDomain: "alunos-9848d.firebaseapp.com",
-      projectId: "alunos-9848d",
-      storageBucket: "alunos-9848d.firebasestorage.app",
-      messagingSenderId: "697570485120",
-      appId: "1:697570485120:web:7667e3913f144fc7f3d765",
-      measurementId: "G-ND3QML6L1P"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Make Firebase instances available globally
-    window.firebaseAuth = auth;
-    window.firebaseDb = db;
-    window.firebaseCollection = collection;
-    window.firebaseAddDoc = addDoc;
-    window.firebaseGetDocs = getDocs;
-    window.firebaseDeleteDoc = deleteDoc;
-    window.firebaseDoc = doc;
-    window.firebaseUpdateDoc = updateDoc;
-  </script>
-
-  <script src="app.js"></script>
+  <!-- Firebase SDKs -->
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js"></script>
+  <script type="module" src="https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js"></script>
+  <script type="module" src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
