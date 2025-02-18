@@ -209,77 +209,17 @@ th {
 }
 
 .login-container {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  padding: 2rem;
-  width: 90%;
+  width: 100%;
   max-width: 400px;
-  margin: 1rem;
+  padding: 2rem;
 }
 
-.login-container h2 {
-  color: var(--primary-color);
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.login-container form {
+.user-info {
   display: flex;
-  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
   gap: 1rem;
-}
-
-.login-container input {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: var(--border-radius);
-  font-size: 1rem;
-}
-
-.login-container button[type="submit"] {
-  padding: 0.75rem;
-  font-size: 1rem;
-  background: var(--primary-color);
-  color: white;
-  border: none;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.login-container button[type="submit"]:hover {
-  background-color: #1976D2;
-}
-
-.login-container button[type="submit"]:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-}
-
-.password-field {
-  position: relative;
-}
-
-.toggle-password {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: none;
-  border: none;
-  padding: 5px;
-  color: #666;
-  cursor: pointer;
-}
-
-.toggle-password:hover {
-  color: var(--primary-color);
-}
-
-.toggle-password svg {
-  width: 20px;
-  height: 20px;
+  margin-bottom: 1rem;
 }
 
 .logout-btn {
@@ -303,6 +243,91 @@ th {
 
 .delete-btn:hover {
   background: #bd2130;
+}
+
+.password-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field input {
+  flex: 1;
+  padding-right: 40px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-password:hover {
+  color: var(--primary-color);
+}
+
+.toggle-password svg {
+  width: 20px;
+  height: 20px;
+}
+
+.user-selection {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-background);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.user-btn:hover {
+  background: var(--primary-color);
+  color: white;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.user-btn:hover .user-avatar {
+  background: white;
+  color: var(--primary-color);
+}
+
+#user-select-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
 @media (max-width: 768px) {
@@ -338,6 +363,14 @@ th {
   .goal-controls {
     justify-content: flex-start;
   }
+
+  .user-selection {
+    width: 100%;
+  }
+  
+  .user-btn {
+    width: 100%;
+  }
 }
 
 @media (min-width: 769px) and (max-width: 1024px) {
@@ -347,17 +380,5 @@ th {
 
   .summary-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 480px) {
-  .login-container {
-    margin: 0.5rem;
-    padding: 1.5rem;
-  }
-  
-  .login-container input,
-  .login-container button[type="submit"] {
-    padding: 0.6rem;
   }
 }

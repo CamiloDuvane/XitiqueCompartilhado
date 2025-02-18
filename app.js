@@ -1,118 +1,93 @@
 // User management
-const users = [
-  { username: 'CWD', password: '1234', role: 'admin' },
-  { username: 'Camilo Duvane', password: '6363', role: 'participant' },
-  { username: 'Cíntia Mucumbi', password: '4321', role: 'participant' }
-];
+const userNames = {
+  'camilowilliam0@gmail.com': 'Camilo Duvane',
+  'cintiajaime11@gmail.com': 'Cíntia Mucumbi'
+};
+
+const validCredentials = {
+  'camilowilliam0@gmail.com': ['6363', '1234'],
+  'cintiajaime11@gmail.com': ['4321']
+};
 
 let currentUser = null;
-let progressChart = null;
-let contributionsRef;
-let goalsRef;
 
 // State management
 const state = {
   totalGoal: 0,
   contributions: [],
-  goals: [
-    { id: 1, name: 'TV', amount: 10000 },
-    { id: 2, name: 'Notebook', amount: 6000 },
-    { id: 3, name: 'Acessórios', amount: 4000 }
-  ]
+  goals: []
 };
+
+let progressChart = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
-  setupLoginForm();
-  if (localStorage.getItem('currentUser')) {
-    const savedUser = JSON.parse(localStorage.getItem('currentUser'));
-    await login(savedUser.username, savedUser.password, true);
-  }
+  document.getElementById('user-select-screen').style.display = 'flex';
 });
 
-function setupLoginForm() {
-  document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    
-    const loginButton = e.target.querySelector('button[type="submit"]');
-    loginButton.disabled = true;
-    loginButton.textContent = 'Entrando...';
-    
-    try {
-      await login(username, password);
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('Erro ao fazer login. Tente novamente.');
-    } finally {
-      loginButton.disabled = false;
-      loginButton.textContent = 'Entrar';
-    }
-  });
+function selectUser(email, password) {
+  login(email, password);
 }
 
-async function login(username, password, autoLogin = false) {
-  const user = users.find(u => u.username === username && u.password === password);
-  
-  if (user) {
-    try {
-      currentUser = user;
-      localStorage.setItem('currentUser', JSON.stringify(user));
-      
-      // Initialize Firebase refs
-      const db = window.firebaseDatabase;
-      contributionsRef = window.firebaseRef(db, 'contributions');
-      goalsRef = window.firebaseRef(db, 'goals');
-      
-      // Load data from Firebase
-      await loadFirebaseData();
-      
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-      document.getElementById('currentUser').textContent = `Olá, ${user.username}`;
-      
-      if (user.role === 'admin') {
-        document.getElementById('adminUsersBtn').style.display = 'block';
-        document.getElementById('adminActions').style.display = 'table-cell';
-      }
-      
-      initializeApp();
-      showSection('overview');
-    } catch (error) {
-      console.error('Error during login:', error);
-      throw error;
-    }
-  } else if (!autoLogin) {
-    alert('Usuário ou senha inválidos!');
-  }
-}
-
-async function loadFirebaseData() {
+// Update the login function
+async function login(email, password) {
   try {
-    // Load contributions
-    const contributionsSnapshot = await window.firebaseGet(contributionsRef);
-    if (contributionsSnapshot.exists()) {
-      state.contributions = Object.values(contributionsSnapshot.val());
+    const userCredential = await window.firebaseAuth.signInWithEmailAndPassword(email, password);
+    const user = userCredential.user;
+    
+    currentUser = {
+      email: user.email,
+      username: userNames[user.email] || user.email,
+      role: user.email === 'camilowilliam0@gmail.com' ? 'admin' : 'participant'
+    };
+    
+    document.getElementById('user-select-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('currentUser').textContent = `Olá, ${currentUser.username}`;
+    
+    if (currentUser.role === 'admin') {
+      document.getElementById('adminUsersBtn').style.display = 'block';
+      document.getElementById('adminActions').style.display = 'table-cell';
     }
-
-    // Load goals
-    const goalsSnapshot = await window.firebaseGet(goalsRef);
-    if (goalsSnapshot.exists()) {
-      state.goals = Object.values(goalsSnapshot.val());
-    }
+    
+    // Load data and initialize app
+    await loadFirestoreData();
+    initializeApp();
   } catch (error) {
-    console.error('Error loading data from Firebase:', error);
+    console.error('Error:', error);
+    alert('Erro ao entrar no sistema. Tente novamente.');
   }
 }
 
+// Update the logout function
 function logout() {
   currentUser = null;
-  localStorage.removeItem('currentUser');
-  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('user-select-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
-  document.getElementById('username').value = '';
-  document.getElementById('password').value = '';
+}
+
+async function loadFirestoreData() {
+  try {
+    // Load contributions
+    const contributionsSnapshot = await window.firebaseGetDocs(
+      window.firebaseCollection(window.firebaseDb, 'contributions')
+    );
+    state.contributions = contributionsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Load goals
+    const goalsSnapshot = await window.firebaseGetDocs(
+      window.firebaseCollection(window.firebaseDb, 'goals')
+    );
+    state.goals = goalsSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error loading data from Firestore:', error);
+  }
 }
 
 function initializeApp() {
@@ -179,18 +154,21 @@ async function handleNewContribution(e) {
   e.preventDefault();
   
   const contribution = {
-    id: Date.now(),
     participant: currentUser.username,
     amount: Number(document.getElementById('amount').value),
-    date: document.getElementById('date').value
+    date: document.getElementById('date').value,
+    createdAt: new Date().toISOString()
   };
   
   try {
-    // Save to Firebase
-    await window.firebaseSet(window.firebaseRef(window.firebaseDatabase, `contributions/${contribution.id}`), contribution);
+    // Save to Firestore
+    const docRef = await window.firebaseAddDoc(
+      window.firebaseCollection(window.firebaseDb, 'contributions'),
+      contribution
+    );
     
     // Update local state
-    state.contributions.push(contribution);
+    state.contributions.push({ ...contribution, id: docRef.id });
     updateContributionsTable();
     updateProgressChart();
     updateSummary();
@@ -201,40 +179,13 @@ async function handleNewContribution(e) {
   }
 }
 
-function updateContributionsTable() {
-  const tbody = document.querySelector('#contributionsTable tbody');
-  tbody.innerHTML = '';
-  
-  state.contributions
-    .sort((a, b) => new Date(b.date) - new Date(a.date))
-    .forEach(contribution => {
-      const row = document.createElement('tr');
-      let html = `
-        <td>${new Date(contribution.date).toLocaleDateString()}</td>
-        <td>${contribution.participant}</td>
-        <td>${contribution.amount} MZN</td>
-      `;
-      
-      if (currentUser.role === 'admin') {
-        html += `
-          <td>
-            <button class="delete-btn" onclick="deleteContribution('${contribution.id}')">
-              Excluir
-            </button>
-          </td>
-        `;
-      }
-      
-      row.innerHTML = html;
-      tbody.appendChild(row);
-    });
-}
-
 async function deleteContribution(id) {
   if (confirm('Tem certeza que deseja excluir esta contribuição?')) {
     try {
-      // Delete from Firebase
-      await window.firebaseRemove(window.firebaseRef(window.firebaseDatabase, `contributions/${id}`));
+      // Delete from Firestore
+      await window.firebaseDeleteDoc(
+        window.firebaseDoc(window.firebaseDb, 'contributions', id)
+      );
       
       // Update local state
       state.contributions = state.contributions.filter(c => c.id !== id);
@@ -252,17 +203,19 @@ async function handleNewGoal(e) {
   e.preventDefault();
   
   const goal = {
-    id: Date.now(),
     name: document.getElementById('goalName').value,
     amount: Number(document.getElementById('goalAmount').value)
   };
   
   try {
-    // Save to Firebase
-    await window.firebaseSet(window.firebaseRef(window.firebaseDatabase, `goals/${goal.id}`), goal);
+    // Save to Firestore
+    const docRef = await window.firebaseAddDoc(
+      window.firebaseCollection(window.firebaseDb, 'goals'),
+      goal
+    );
     
     // Update local state
-    state.goals.push(goal);
+    state.goals.push({ ...goal, id: docRef.id });
     renderGoals();
     updateSummary();
     e.target.reset();
@@ -275,18 +228,20 @@ async function handleNewGoal(e) {
 async function updateGoal(id, newName, newAmount) {
   try {
     const updatedGoal = {
-      id,
       name: newName,
-      amount: Number(newAmount)
+      amount: newAmount
     };
     
-    // Update in Firebase
-    await window.firebaseSet(window.firebaseRef(window.firebaseDatabase, `goals/${id}`), updatedGoal);
+    // Update in Firestore
+    await window.firebaseUpdateDoc(
+      window.firebaseDoc(window.firebaseDb, 'goals', id),
+      updatedGoal
+    );
     
     // Update local state
     const goalIndex = state.goals.findIndex(g => g.id === id);
     if (goalIndex !== -1) {
-      state.goals[goalIndex] = updatedGoal;
+      state.goals[goalIndex] = { ...state.goals[goalIndex], name: newName, amount: newAmount };
       renderGoals();
       updateSummary();
     }
@@ -299,8 +254,10 @@ async function updateGoal(id, newName, newAmount) {
 async function deleteGoal(id) {
   if (confirm('Tem certeza que deseja excluir este objetivo?')) {
     try {
-      // Delete from Firebase
-      await window.firebaseRemove(window.firebaseRef(window.firebaseDatabase, `goals/${id}`));
+      // Delete from Firestore
+      await window.firebaseDeleteDoc(
+        window.firebaseDoc(window.firebaseDb, 'goals', id)
+      );
       
       // Update local state
       state.goals = state.goals.filter(g => g.id !== id);
@@ -503,6 +460,31 @@ function showSection(sectionId) {
   document.querySelector(`button[onclick="showSection('${sectionId}')"]`).classList.add('active');
 }
 
-function getTotalGoal() {
-  return state.goals.reduce((sum, goal) => sum + goal.amount, 0);
+function updateContributionsTable() {
+  const tbody = document.querySelector('#contributionsTable tbody');
+  tbody.innerHTML = '';
+  
+  state.contributions
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .forEach(contribution => {
+      const row = document.createElement('tr');
+      let html = `
+        <td>${new Date(contribution.date).toLocaleDateString()}</td>
+        <td>${contribution.participant}</td>
+        <td>${contribution.amount} MZN</td>
+      `;
+      
+      if (currentUser.role === 'admin') {
+        html += `
+          <td>
+            <button class="delete-btn" onclick="deleteContribution('${contribution.id}')">
+              Excluir
+            </button>
+          </td>
+        `;
+      }
+      
+      row.innerHTML = html;
+      tbody.appendChild(row);
+    });
 }
